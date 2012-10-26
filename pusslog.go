@@ -7,10 +7,15 @@ import (
 	"fmt"
 	"strings"
 	"strconv"
+	"flag"
 )
 
+var process = flag.String("p", "", "process or package name filter")
+var prio = flag.String("prio", "VDIWEF", "priority filter (VERBOSE/DEBUG/INFO/WARNING/ERROR/FATAL)")
+var minprio = flag.String("minprio", "V", "minimum priority level")
+
 func main() {
-    // TODO: Implement options
+    flag.Parse()
 	loop()
 }
 
