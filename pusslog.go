@@ -10,9 +10,10 @@ import (
 	"flag"
 )
 
-var process = flag.String("p", "", "process or package name filter")
-var prio = flag.String("prio", "VDIWEF", "priority filter (VERBOSE/DEBUG/INFO/WARNING/ERROR/FATAL)")
-var minprio = flag.String("minprio", "V", "minimum priority level")
+var process = flag.String("p", "", "process or package name filter") // TODO
+var highlight = flag.String("hl", "", "highlight tag/process/package name") // TODO (tag implemented)
+var prio = flag.String("prio", "VDIWEF", "priority filter (VERBOSE/DEBUG/INFO/WARNING/ERROR/FATAL)") // TODO
+var minprio = flag.String("minprio", "V", "minimum priority level") // TODO
 
 func main() {
     flag.Parse()
@@ -55,6 +56,11 @@ func parseline(l string){
 }
 
 func logmessage(date string, time string, threadid int, processid int, prio string, tag string, message string){
-    fmt.Printf("[%s] %s\n", tag, message)
+    var pre, post string
+    if tag == *highlight {
+        pre = "\x1b[43m\x1b[30m"
+        post = "\x1b[0m"
+    }
+    fmt.Printf("%s[%s] %s%s\n", pre, tag, message, post)
 }
 
