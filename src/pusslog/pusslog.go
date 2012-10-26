@@ -58,8 +58,8 @@ func parseline(l string){
 func logmessage(date string, time string, threadid int, processid int, prio string, tag string, message string){
     var pre, post string
     if tag == *highlight {
-        pre = "\x1b[43m\x1b[30m"
-        post = "\x1b[0m"
+        pre = BgYellow + FgBlack
+        post = Reset
     }
     fmt.Printf("%s[%s] %s%s\n", pre, tag, message, post)
 }
