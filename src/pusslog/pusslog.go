@@ -16,6 +16,15 @@ var highlight = flag.String("hl", "", "highlight tag/process/package name")
 var priofilter = flag.String("prio", "VDIWEF", "priority filter (VERBOSE/DEBUG/INFO/WARNING/ERROR/FATAL)")
 var minprio = flag.String("minprio", "V", "minimum priority level")
 
+var prioMap = map[string] int {
+    "V": 0,
+    "D": 1,
+    "I": 2,
+    "W": 3,
+    "E": 4,
+    "F": 5,
+}
+
 var pid int
 
 func main() {
@@ -165,6 +174,11 @@ func logmessage(date string, time string, threadid int, processid int, prio stri
 	// prio filter
 	if !strings.Contains(*priofilter, prio) {
 	    return
+    }
+    
+    // min prio filter
+    if prioMap[*minprio] > prioMap[prio] {
+        return
     }
 
 	// highlight (if enabled)
