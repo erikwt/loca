@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"errors"
 )
 
 var process = flag.String("p", "", "process or package name filter")                                 // TODO
@@ -22,12 +23,66 @@ func main() {
 	if len(*process) > 0 || len(*highlight) > 0 {
 		setPidFilter()
 	}
+	
+	deviceId, err := getDeviceId()
+	if err != nil {
+	    log.Fatal("Error: ", err)
+	    return
+	}
 
-	loop()
+    fmt.Printf("Selected device: %s\n\n", deviceId)
+	loop(deviceId)
 }
 
-func loop() {
-	cmd := exec.Command("adb", "logcat", "-v", "threadtime")
+func getDeviceId() (string, error) {
+    cmd := exec.Command("adb", "devices")
+    stdout, _ := cmd.StdoutPipe()
+	rd := bufio.NewReader(stdout)
+	if err := cmd.Start(); err != nil {
+		return "", fmt.Errorf("Error getting devices: %s", err)
+	}
+
+    // Skip first line
+	if _, err := rd.ReadString('\n'); err != nil {
+		return "", errors.New("Error getting devices")
+	}
+	
+	devices := make([]string, 0)
+	for str, err := rd.ReadString('\n'); err == nil; str, err = rd.ReadString('\n') {
+	    if len(strings.TrimSpace(str)) > 0 {
+	        devices = append(devices, str)
+	    }
+	}
+	
+	if len(devices) == 0 {
+	    return "", errors.New("No device connected")
+	}
+	
+	if len(devices) == 1 {
+	    f := strings.Fields(devices[0])
+	    if f[0] == "????????????" {
+	        return "", errors.New("No permissions for device")
+	    }
+	    
+	    return f[0], nil
+	}
+	
+	fmt.Println("Multiple devices found!\n")
+	for i := 0; i < len(devices); i++ {
+	    fmt.Printf("[%d]\t%s", i + 1, devices[i])
+	}
+	
+    deviceIndex := 0
+    for deviceIndex <= 0 || deviceIndex > len(devices) {
+        fmt.Printf("\nUse device number: ")
+        fmt.Scanf("%d", &deviceIndex)
+    }
+    
+    return strings.Fields(devices[deviceIndex - 1])[0], nil
+}
+
+func loop(deviceId string) {
+	cmd := exec.Command("adb", "-s", deviceId, "logcat", "-v", "threadtime")
 
 	stdout, _ := cmd.StdoutPipe()
 	rd := bufio.NewReader(stdout)
