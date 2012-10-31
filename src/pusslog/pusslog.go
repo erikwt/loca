@@ -11,10 +11,10 @@ import (
 	"strings"
 )
 
-var process = flag.String("p", "", "process or package name filter")                                 // TODO
-var highlight = flag.String("hl", "", "highlight tag/process/package name")                          // TODO (tag implemented)
-var prio = flag.String("prio", "VDIWEF", "priority filter (VERBOSE/DEBUG/INFO/WARNING/ERROR/FATAL)") // TODO
-var minprio = flag.String("minprio", "V", "minimum priority level")                                  // TODO
+var process = flag.String("p", "", "process or package name filter")
+var highlight = flag.String("hl", "", "highlight tag/process/package name")
+var priofilter = flag.String("prio", "VDIWEF", "priority filter (VERBOSE/DEBUG/INFO/WARNING/ERROR/FATAL)")
+var minprio = flag.String("minprio", "V", "minimum priority level")
 
 var pid int
 
@@ -161,6 +161,11 @@ func logmessage(date string, time string, threadid int, processid int, prio stri
 	if len(*process) > 0 && pid != processid {
 		return
 	}
+	
+	// prio filter
+	if !strings.Contains(*priofilter, prio) {
+	    return
+    }
 
 	// highlight (if enabled)
 	var pre, post string
