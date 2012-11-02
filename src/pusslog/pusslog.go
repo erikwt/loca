@@ -37,6 +37,8 @@ var colorMap = map[string]string{
 var pid, termcols int
 
 func main() {
+    testEnv()
+
 	termsize, err := GetWinsize()
 	if err != nil {
 		log.Fatal("Error:", err)
@@ -70,6 +72,12 @@ func main() {
 	}
 
 	loop(deviceId)
+}
+
+func testEnv() {
+    if _, err := exec.LookPath("adb"); err != nil {
+        log.Fatal("Error: adb command not found in PATH")
+    }
 }
 
 func getDeviceId() (string, error) {
