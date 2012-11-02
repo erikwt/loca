@@ -43,9 +43,15 @@ func main() {
 
 	fmt.Printf("Selected device: %s\n\n", deviceId)
 
-	if len(*process) > 0 || len(*highlight) > 0 {
-		setPid()
-	}
+	if len(*process) > 0 {
+		pid, err = getPid(*process)
+        if err != nil {
+            log.Fatal("Error getting pid for process: " + *process)
+            return
+        }
+	} else if len(*highlight) > 0 {
+        pid, _ = getPid(*highlight)
+    }
 
 	loop(deviceId)
 }
@@ -95,17 +101,8 @@ func getDeviceId() (string, error) {
 	return strings.Fields(devices[deviceIndex-1])[0], nil
 }
 
-func setPid() {
-	var cmd = new(exec.Cmd)
-	if len(*process) > 0 {
-		cmd = exec.Command("adb", "shell", "ps", *process)
-	} else if len(*highlight) > 0 {
-		cmd = exec.Command("adb", "shell", "ps", *highlight)
-	}
-
-	if cmd == nil {
-		return
-	}
+func getPid(name string) (int, error) {
+	cmd := exec.Command("adb", "shell", "ps", name)
 
 	stdout, _ := cmd.StdoutPipe()
 	rd := bufio.NewReader(stdout)
@@ -114,22 +111,21 @@ func setPid() {
 	}
 
 	// Skip first line
-	_, err := rd.ReadString('\n')
-	if err != nil {
-		log.Fatal("Read Error:", err)
-		return
+	if _, err := rd.ReadString('\n'); err != nil {
+		return 0, err
 	}
 
-	str, err := rd.ReadString('\n')
+    str, err := rd.ReadString('\n')
 	if err != nil {
-		log.Fatal("Read Error:", err)
-		return
+		return 0, err
 	}
 
-	fields := strings.Fields(str)
-	if len(fields) == 9 {
-		pid, _ = strconv.Atoi(fields[1])
+	if fields := strings.Fields(str); len(fields) == 9 {
+		pid, _ := strconv.Atoi(fields[1])
+        return pid, nil
 	}
+
+    return 0, fmt.Errorf("Error parsing 'ps' output")
 }
 
 func loop(deviceId string) {
