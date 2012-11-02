@@ -58,14 +58,16 @@ func getDeviceId() (string, error) {
 		return "", fmt.Errorf("Error getting devices: %s", err)
 	}
 
-	// Skip first line
-	if _, err := rd.ReadString('\n'); err != nil {
-		return "", errors.New("Error getting devices")
+	// Skip irrelevant lines
+	for {
+        str, err := rd.ReadString('\n')
+		if err != nil { return "", errors.New("Error getting devices") }
+        if len(str) > 0 && strings.TrimSpace(str)[0] != '*' { break }
 	}
 
 	devices := make([]string, 0)
 	for str, err := rd.ReadString('\n'); err == nil; str, err = rd.ReadString('\n') {
-		if len(strings.TrimSpace(str)) > 0 {
+		if str = strings.TrimSpace(str); len(str) > 0 {
 			devices = append(devices, str)
 		}
 	}
