@@ -187,5 +187,5 @@ func logmessage(date string, time string, threadid int, processid int, prio stri
 	}
 
 	// Print logmessage
-	fmt.Printf("%s[%s] %s%s\n", pre, tag, message, post)
+	fmt.Printf("%s%-30s %s%s\n", pre, "[" + tag + "]", message, post)
 }
