@@ -168,12 +168,12 @@ func logmessage(date string, time string, threadid int, processid int, prio stri
 	if len(*process) > 0 && pid != processid {
 		return
 	}
-	
+
 	// prio filter
 	if !strings.Contains(*priofilter, prio) {
 	    return
     }
-    
+
     // min prio filter
     if prioMap[*minprio] > prioMap[prio] {
         return
@@ -182,7 +182,7 @@ func logmessage(date string, time string, threadid int, processid int, prio stri
 	// highlight (if enabled)
 	var pre, post string
 	if tag == *highlight || (len(*process) == 0 && pid == processid) {
-		pre = BgYellow + FgBlack
+		pre = Bold
 		post = Reset
 	}
 
