@@ -208,7 +208,7 @@ func logmessage(date string, time string, threadid int, processid int, prio stri
 	// Apply color (based on priority)
 	pre = pre + colorMap[prio]
 
-	// Wrap message if needed
+	// Wrap message and fill to terminal width
 	availableWidth := termcols - 31
 	parts := len(message) / availableWidth
 	if len(message)%availableWidth != 0 {
