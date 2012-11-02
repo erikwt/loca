@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -15,6 +16,7 @@ var process = flag.String("p", "", "process or package name filter")
 var highlight = flag.String("hl", "", "highlight tag/process/package name")
 var priofilter = flag.String("prio", "VDIWEF", "priority filter (VERBOSE/DEBUG/INFO/WARNING/ERROR/FATAL)")
 var minprio = flag.String("minprio", "V", "minimum priority level")
+var file = flag.String("file", "", "write log to file")
 
 var prioMap = map[string]int{
 	"V": 0,
@@ -35,6 +37,7 @@ var colorMap = map[string]string{
 }
 
 var pid, termcols int
+var outputFile *os.File
 
 func main() {
     testEnv()
@@ -70,6 +73,13 @@ func main() {
 	} else if len(*highlight) > 0 {
 		pid, _ = getPid(*highlight)
 	}
+
+    if len(*file) > 0 {
+        outputFile, err = os.Create(*file)
+        if err != nil {
+            log.Fatal("Error opening output file: " + *file, err)
+        }
+    }
 
 	loop(deviceId)
 }
@@ -254,5 +264,13 @@ func logmessage(date string, time string, threadid int, processid int, prio stri
 	}
 
 	// Print logmessage
-	fmt.Printf("%s%-27s[%s] %s%s\n", pre, "["+tag+"]", prio, message, Reset)
+	out := fmt.Sprintf("%s%-27s[%s] %s%s\n", pre, "["+tag+"]", prio, message, Reset)
+	fmt.Print(out)
+	
+	// Print logmessage to file if needed
+	if len(*file) > 0 {
+	    if _, err := outputFile.Write([]byte(out)); err != nil {
+	        log.Fatal("Error writing to logfile: " + *file, err)
+	    }
+	}
 }
