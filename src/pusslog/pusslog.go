@@ -26,8 +26,8 @@ var prioMap = map[string]int{
 }
 
 var colorMap = map[string]string{
-	"V": BgGreen + FgWhite,
-	"D": BgCyan + FgWhite,
+	"V": BgGreen + FgBlack,
+	"D": BgCyan + FgBlack,
 	"I": BgYellow + FgBlack,
 	"W": BgBlue + FgWhite,
 	"E": BgRed + FgWhite,
@@ -202,7 +202,7 @@ func logmessage(date string, time string, threadid int, processid int, prio stri
 	// highlight (if enabled)
 	var pre string
 	if tag == *highlight || (len(*process) == 0 && pid == processid) {
-		pre = Bold
+		pre = Bold + Underline
 	}
 
 	// Apply color (based on priority)
@@ -246,5 +246,5 @@ func logmessage(date string, time string, threadid int, processid int, prio stri
 	}
 
 	// Print logmessage
-	fmt.Printf("%s%-30s %s%s\n", pre, "["+tag+"]", message, Reset)
+	fmt.Printf("%s%-27s[%s] %s%s\n", pre, "["+tag+"]", prio, message, Reset)
 }
