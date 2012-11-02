@@ -16,27 +16,34 @@ var highlight = flag.String("hl", "", "highlight tag/process/package name")
 var priofilter = flag.String("prio", "VDIWEF", "priority filter (VERBOSE/DEBUG/INFO/WARNING/ERROR/FATAL)")
 var minprio = flag.String("minprio", "V", "minimum priority level")
 
-var prioMap = map[string] int {
-    "V": 0,
-    "D": 1,
-    "I": 2,
-    "W": 3,
-    "E": 4,
-    "F": 5,
+var prioMap = map[string]int{
+	"V": 0,
+	"D": 1,
+	"I": 2,
+	"W": 3,
+	"E": 4,
+	"F": 5,
 }
 
-var colorMap = map[string] string {
-    "V": BgGreen + FgWhite,
-    "D": BgCyan + FgWhite,
-    "I": BgYellow + FgBlack,
-    "W": BgBlue + FgWhite,
-    "E": BgRed + FgWhite,
-    "F": BgMagenta + FgWhite,
+var colorMap = map[string]string{
+	"V": BgGreen + FgWhite,
+	"D": BgCyan + FgWhite,
+	"I": BgYellow + FgBlack,
+	"W": BgBlue + FgWhite,
+	"E": BgRed + FgWhite,
+	"F": BgMagenta + FgWhite,
 }
 
-var pid int
+var pid, termcols int
 
 func main() {
+	termsize, err := GetWinsize()
+	if err != nil {
+		log.Fatal("Error:", err)
+		return
+	}
+	termcols = int(termsize.Col)
+
 	flag.Parse()
 
 	deviceId, err := getDeviceId()
@@ -54,13 +61,13 @@ func main() {
 
 	if len(*process) > 0 {
 		pid, err = getPid(*process)
-        if err != nil {
-            log.Fatal("Error getting pid for process: " + *process)
-            return
-        }
+		if err != nil {
+			log.Fatal("Error getting pid for process: " + *process)
+			return
+		}
 	} else if len(*highlight) > 0 {
-        pid, _ = getPid(*highlight)
-    }
+		pid, _ = getPid(*highlight)
+	}
 
 	loop(deviceId)
 }
@@ -75,9 +82,13 @@ func getDeviceId() (string, error) {
 
 	// Skip irrelevant lines
 	for {
-        str, err := rd.ReadString('\n')
-		if err != nil { return "", errors.New("Error getting devices") }
-        if len(str) > 0 && strings.TrimSpace(str)[0] != '*' { break }
+		str, err := rd.ReadString('\n')
+		if err != nil {
+			return "", errors.New("Error getting devices")
+		}
+		if len(str) > 0 && strings.TrimSpace(str)[0] != '*' {
+			break
+		}
 	}
 
 	devices := make([]string, 0)
@@ -124,17 +135,17 @@ func getPid(name string) (int, error) {
 		return 0, err
 	}
 
-    str, err := rd.ReadString('\n')
+	str, err := rd.ReadString('\n')
 	if err != nil {
 		return 0, err
 	}
 
 	if fields := strings.Fields(str); len(fields) == 9 {
 		pid, _ := strconv.Atoi(fields[1])
-        return pid, nil
+		return pid, nil
 	}
 
-    return 0, fmt.Errorf("Error parsing 'ps' output")
+	return 0, fmt.Errorf("Error parsing 'ps' output")
 }
 
 func loop(deviceId string) {
@@ -180,13 +191,13 @@ func logmessage(date string, time string, threadid int, processid int, prio stri
 
 	// prio filter
 	if !strings.Contains(*priofilter, prio) {
-	    return
-    }
+		return
+	}
 
-    // min prio filter
-    if prioMap[*minprio] > prioMap[prio] {
-        return
-    }
+	// min prio filter
+	if prioMap[*minprio] > prioMap[prio] {
+		return
+	}
 
 	// highlight (if enabled)
 	var pre string
@@ -194,9 +205,36 @@ func logmessage(date string, time string, threadid int, processid int, prio stri
 		pre = Bold
 	}
 
-    // Apply color (based on priority)
-    pre = pre + colorMap[prio]
+	// Apply color (based on priority)
+	pre = pre + colorMap[prio]
+
+	// Wrap message if needed
+	availableWidth := termcols - 31
+	parts := len(message) / availableWidth
+	if len(message)%availableWidth != 0 {
+		parts++
+	}
+	if parts > 1 {
+		var newmessage string
+		var end int
+		start := 0
+		for {
+			end = start + availableWidth
+			if end > len(message) {
+				end = len(message)
+			}
+			newmessage += message[start:end]
+
+			start = end
+			if start < len(message) {
+				newmessage += "\n                               " // 31 spaces ;-) TODO: Make option/const
+			} else {
+				break
+			}
+		}
+		message = newmessage
+	}
 
 	// Print logmessage
-	fmt.Printf("%s%-30s %s%s\n", pre, "[" + tag + "]", message, Reset)
+	fmt.Printf("%s%-30s %s%s\n", pre, "["+tag+"]", message, Reset)
 }

@@ -1,11 +1,21 @@
 package main
 
+import (
+	"fmt"
+	"syscall"
+	"unsafe"
+)
+
+const (
+	_TIOCGWINSZ = 0x5413 // On OSX use 1074295912
+)
+
 const (
 	Reset      = "\x1b[0m"
 	Bright     = "\x1b[1m"
 	Dim        = "\x1b[2m"
 	Underscore = "\x1b[4m"
-    Bold       = "\033[1m"
+	Bold       = "\033[1m"
 	Blink      = "\x1b[5m"
 	Reverse    = "\x1b[7m"
 	Hidden     = "\x1b[8m"
@@ -28,3 +38,26 @@ const (
 	BgCyan    = "\x1b[46m"
 	BgWhite   = "\x1b[47m"
 )
+
+type winsize struct {
+	Row    uint16
+	Col    uint16
+	Xpixel uint16
+	Ypixel uint16
+}
+
+func GetWinsize() (*winsize, error) {
+	ws := new(winsize)
+
+	r1, _, errno := syscall.Syscall(syscall.SYS_IOCTL,
+		uintptr(syscall.Stdin),
+		uintptr(_TIOCGWINSZ),
+		uintptr(unsafe.Pointer(ws)),
+	)
+
+	if int(r1) == -1 {
+		return nil, fmt.Errorf("Unable to get terminfo. Errno: %d", errno)
+	}
+
+	return ws, nil
+}
