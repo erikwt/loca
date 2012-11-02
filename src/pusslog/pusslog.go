@@ -225,14 +225,24 @@ func logmessage(date string, time string, threadid int, processid int, prio stri
 			}
 			newmessage += message[start:end]
 
-			start = end
-			if start < len(message) {
+			if end < len(message) {
+    			start = end
 				newmessage += "\n                               " // 31 spaces ;-) TODO: Make option/const
 			} else {
+			    numSpaces := availableWidth - (end - start)
+			    for i := 0; i < numSpaces; i++ {
+			        newmessage += " "
+			    }
+			    
 				break
 			}
 		}
 		message = newmessage
+	} else {
+	    numSpaces := availableWidth - len(message)
+	    for i := 0; i < numSpaces; i++ {
+	        message += " "
+	    }
 	}
 
 	// Print logmessage
