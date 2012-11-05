@@ -6,8 +6,8 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"os/exec"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 )
@@ -40,7 +40,7 @@ var pid, termcols int
 var outputFile *os.File
 
 func main() {
-    testEnv()
+	testEnv()
 
 	termsize, err := GetWinsize()
 	if err != nil {
@@ -74,20 +74,20 @@ func main() {
 		pid, _ = getPid(*highlight)
 	}
 
-    if len(*file) > 0 {
-        outputFile, err = os.Create(*file)
-        if err != nil {
-            log.Fatal("Error opening output file: " + *file, err)
-        }
-    }
+	if len(*file) > 0 {
+		outputFile, err = os.Create(*file)
+		if err != nil {
+			log.Fatal("Error opening output file: "+*file, err)
+		}
+	}
 
 	loop(deviceId)
 }
 
 func testEnv() {
-    if _, err := exec.LookPath("adb"); err != nil {
-        log.Fatal("Error: adb command not found in PATH")
-    }
+	if _, err := exec.LookPath("adb"); err != nil {
+		log.Fatal("Error: adb command not found in PATH")
+	}
 }
 
 func getDeviceId() (string, error) {
@@ -244,33 +244,33 @@ func logmessage(date string, time string, threadid int, processid int, prio stri
 			newmessage += message[start:end]
 
 			if end < len(message) {
-    			start = end
+				start = end
 				newmessage += "\n                               " // 31 spaces ;-) TODO: Make option/const
 			} else {
-			    numSpaces := availableWidth - (end - start)
-			    for i := 0; i < numSpaces; i++ {
-			        newmessage += " "
-			    }
-			    
+				numSpaces := availableWidth - (end - start)
+				for i := 0; i < numSpaces; i++ {
+					newmessage += " "
+				}
+
 				break
 			}
 		}
 		message = newmessage
 	} else {
-	    numSpaces := availableWidth - len(message)
-	    for i := 0; i < numSpaces; i++ {
-	        message += " "
-	    }
+		numSpaces := availableWidth - len(message)
+		for i := 0; i < numSpaces; i++ {
+			message += " "
+		}
 	}
 
 	// Print logmessage
 	out := fmt.Sprintf("%s%-27s[%s] %s%s\n", pre, "["+tag+"]", prio, message, Reset)
 	fmt.Print(out)
-	
+
 	// Print logmessage to file if needed
 	if len(*file) > 0 {
-	    if _, err := outputFile.Write([]byte(out)); err != nil {
-	        log.Fatal("Error writing to logfile: " + *file, err)
-	    }
+		if _, err := outputFile.Write([]byte(out)); err != nil {
+			log.Fatal("Error writing to logfile: "+*file, err)
+		}
 	}
 }

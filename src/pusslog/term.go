@@ -11,14 +11,14 @@ const (
 )
 
 const (
-	Reset      = "\x1b[0m"
-	Bright     = "\x1b[1m"
-	Dim        = "\x1b[2m"
-	Underline  = "\x1b[4m"
-	Bold       = "\033[1m"
-	Blink      = "\x1b[5m"
-	Reverse    = "\x1b[7m"
-	Hidden     = "\x1b[8m"
+	Reset     = "\x1b[0m"
+	Bright    = "\x1b[1m"
+	Dim       = "\x1b[2m"
+	Underline = "\x1b[4m"
+	Bold      = "\033[1m"
+	Blink     = "\x1b[5m"
+	Reverse   = "\x1b[7m"
+	Hidden    = "\x1b[8m"
 
 	FgBlack   = "\x1b[30m"
 	FgRed     = "\x1b[31m"
