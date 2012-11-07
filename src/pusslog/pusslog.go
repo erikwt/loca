@@ -127,7 +127,7 @@ func getDeviceId() (string, error) {
 
 	fmt.Println("Multiple devices found!\n")
 	for i := 0; i < len(devices); i++ {
-		fmt.Printf("[%d]\t%s", i+1, devices[i])
+		fmt.Printf("[%d]\t%s\n", i+1, devices[i])
 	}
 
 	deviceIndex := 0
