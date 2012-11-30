@@ -149,7 +149,7 @@ func getDeviceId() (string, error) {
 }
 
 func getPid(name string) (int, error) {
-	cmd := exec.Command("adb", "shell", "ps", name)
+	cmd := exec.Command("adb", "shell", "ps")
 
 	stdout, _ := cmd.StdoutPipe()
 	rd := bufio.NewReader(stdout)
@@ -162,17 +162,14 @@ func getPid(name string) (int, error) {
 		return 0, err
 	}
 
-	str, err := rd.ReadString('\n')
-	if err != nil {
-		return 0, err
+	for str, err := rd.ReadString('\n'); err == nil; str, err = rd.ReadString('\n') {
+		if fields := strings.Fields(str); len(fields) == 9 && name == fields[8] {
+			pid, _ := strconv.Atoi(fields[1])
+			return pid, nil
+		}
 	}
 
-	if fields := strings.Fields(str); len(fields) == 9 {
-		pid, _ := strconv.Atoi(fields[1])
-		return pid, nil
-	}
-
-	return 0, fmt.Errorf("Error parsing 'ps' output")
+	return 0, fmt.Errorf("Error finding package process")
 }
 
 func readlog(deviceId string) {
