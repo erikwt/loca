@@ -5,6 +5,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -178,7 +179,11 @@ func loop(deviceId string) {
 	for {
 		str, err := rd.ReadString('\n')
 		if err != nil {
-			log.Fatal("Read Error:", err)
+			if err == io.EOF {
+				log.Println("Device disconnected.")
+			} else {
+				log.Fatal("Read Error: ", err)
+			}
 			return
 		}
 
