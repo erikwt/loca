@@ -82,7 +82,7 @@ func main() {
 		}
 	}
 
-	loop(deviceId)
+	readlog(deviceId)
 }
 
 func testEnv() {
@@ -167,7 +167,7 @@ func getPid(name string) (int, error) {
 	return 0, fmt.Errorf("Error parsing 'ps' output")
 }
 
-func loop(deviceId string) {
+func readlog(deviceId string) {
 	cmd := exec.Command("adb", "-s", deviceId, "logcat", "-v", "threadtime")
 
 	stdout, _ := cmd.StdoutPipe()
