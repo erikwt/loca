@@ -9,6 +9,7 @@ Written in Go, for the purpose of learning Go and improving the Android developm
 * Highlight messages from package (like com.example)
 * Highlight messages with specific tag
 * Filter messages from package (like com.example)
+* Filter messages from specific tag
 * Filter specific priorities
 * Filter by minimum priority
 

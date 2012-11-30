@@ -21,6 +21,7 @@ const (
 
 var taglength = flag.Int("tl", DEFAULT_TAG_LENGTH, "maximum tag length")
 var process = flag.String("p", "", "process or package name filter")
+var ftag = flag.String("t", "", "tag filter")
 var highlight = flag.String("hl", "", "highlight tag/process/package name")
 var priofilter = flag.String("prio", DEFAULT_PRIO_FILTER, "priority filter (VERBOSE/DEBUG/INFO/WARNING/ERROR/FATAL)")
 var minprio = flag.String("minprio", DEFAULT_MINPRIO, "minimum priority level")
@@ -216,6 +217,11 @@ func parseline(l string) {
 func logmessage(date string, time string, threadid int, processid int, prio string, tag string, message string) {
 	// process id filter (if enabled)
 	if len(*process) > 0 && pid != processid {
+		return
+	}
+
+	// Tag filter (if enabled)
+	if len(*ftag) > 0 && *ftag != tag {
 		return
 	}
 
