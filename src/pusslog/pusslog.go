@@ -13,10 +13,17 @@ import (
 	"strings"
 )
 
+const (
+	DEFAULT_TAG_LENGTH	= 30
+	DEFAULT_PRIO_FILTER 	= "VDIWEF"
+	DEFAULT_MINPRIO 	= "V"
+)
+
+var taglength = flag.Int("tl", DEFAULT_TAG_LENGTH, "maximum tag length")
 var process = flag.String("p", "", "process or package name filter")
 var highlight = flag.String("hl", "", "highlight tag/process/package name")
-var priofilter = flag.String("prio", "VDIWEF", "priority filter (VERBOSE/DEBUG/INFO/WARNING/ERROR/FATAL)")
-var minprio = flag.String("minprio", "V", "minimum priority level")
+var priofilter = flag.String("prio", DEFAULT_PRIO_FILTER, "priority filter (VERBOSE/DEBUG/INFO/WARNING/ERROR/FATAL)")
+var minprio = flag.String("minprio", DEFAULT_MINPRIO, "minimum priority level")
 var file = flag.String("file", "", "write log to file")
 
 var prioMap = map[string]int{
@@ -232,7 +239,7 @@ func logmessage(date string, time string, threadid int, processid int, prio stri
 	pre = pre + colorMap[prio]
 
 	// Wrap message and fill to terminal width
-	availableWidth := termcols - 31
+	availableWidth := termcols - *taglength - 4
 	parts := len(message) / availableWidth
 	if len(message)%availableWidth != 0 {
 		parts++
@@ -250,7 +257,10 @@ func logmessage(date string, time string, threadid int, processid int, prio stri
 
 			if end < len(message) {
 				start = end
-				newmessage += "\n                               " // 31 spaces ;-) TODO: Make option/const
+				newmessage += "\n"
+				for i := 0; i < *taglength + 4; i++ {
+					newmessage += " "
+				}
 			} else {
 				numSpaces := availableWidth - (end - start)
 				for i := 0; i < numSpaces; i++ {
@@ -268,8 +278,12 @@ func logmessage(date string, time string, threadid int, processid int, prio stri
 		}
 	}
 
+	if len(tag) > *taglength {
+		tag = tag[0:*taglength]
+	}
+
 	// Print logmessage
-	out := fmt.Sprintf("%s%-27s[%s] %s%s\n", pre, "["+tag+"]", prio, message, Reset)
+	out := fmt.Sprintf("%s%-" + strconv.Itoa(*taglength) + "s[%s] %s%s\n", pre, tag, prio, message, Reset)
 	fmt.Print(out)
 
 	// Print logmessage to file if needed
