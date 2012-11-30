@@ -7,10 +7,6 @@ import (
 )
 
 const (
-	_TIOCGWINSZ = 0x5413 // On OSX use 1074295912
-)
-
-const (
 	Reset     = "\x1b[0m"
 	Bright    = "\x1b[1m"
 	Dim       = "\x1b[2m"
