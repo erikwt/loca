@@ -14,9 +14,9 @@ import (
 )
 
 const (
-	DEFAULT_TAG_LENGTH	= 30
-	DEFAULT_PRIO_FILTER 	= "VDIWEF"
-	DEFAULT_MINPRIO 	= "V"
+	DEFAULT_TAG_LENGTH  = 30
+	DEFAULT_PRIO_FILTER = "VDIWEF"
+	DEFAULT_MINPRIO     = "V"
 )
 
 var taglength = flag.Int("tl", DEFAULT_TAG_LENGTH, "maximum tag length")
@@ -258,7 +258,7 @@ func logmessage(date string, time string, threadid int, processid int, prio stri
 			if end < len(message) {
 				start = end
 				newmessage += "\n"
-				for i := 0; i < *taglength + 4; i++ {
+				for i := 0; i < *taglength+4; i++ {
 					newmessage += " "
 				}
 			} else {
@@ -283,7 +283,7 @@ func logmessage(date string, time string, threadid int, processid int, prio stri
 	}
 
 	// Print logmessage
-	out := fmt.Sprintf("%s%-" + strconv.Itoa(*taglength) + "s[%s] %s%s\n", pre, tag, prio, message, Reset)
+	out := fmt.Sprintf("%s%-"+strconv.Itoa(*taglength)+"s[%s] %s%s\n", pre, tag, prio, message, Reset)
 	fmt.Print(out)
 
 	// Print logmessage to file if needed
