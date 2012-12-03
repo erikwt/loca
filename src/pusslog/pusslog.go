@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"regexp"
 )
 
 const (
@@ -28,6 +29,7 @@ var minprio = flag.String("minprio", DEFAULT_MINPRIO, "minimum priority level")
 var file = flag.String("file", "", "write log to file")
 var color = flag.Bool("color", true, "enable colored output")
 var stdout = flag.Bool("stdout", true, "print to <stdout>")
+var casesensitive = flag.Bool("casesensitive", false, "case sensitive filters")
 
 var prioMap = map[string]int{
 	"V": 0,
@@ -71,6 +73,7 @@ func main() {
 	termcols = int(termsize.Col)
 
 	flag.Parse()
+	buildPatterns()
 
 	deviceId, err := getDeviceId()
 	if err != nil {
@@ -101,6 +104,26 @@ func testEnv() {
 	if _, err := exec.LookPath("adb"); err != nil {
 		log.Fatal("Error: adb command not found in PATH")
 	}
+}
+
+func buildPatterns() {
+	if len(*process) > 0 {
+		*process = buildPattern(*process)
+	}
+	
+	if len(*highlight) > 0 {
+		*highlight = buildPattern(*highlight)
+	}
+}
+
+func buildPattern(pattern string) string {
+	if !*casesensitive {
+		pattern = strings.ToLower(pattern)
+	}
+		
+	pattern = regexp.QuoteMeta(pattern)
+	pattern = strings.Replace(pattern, "\\*", ".*", -1)
+	return "^" + pattern + "$"
 }
 
 func getDeviceId() (string, error) {
@@ -179,7 +202,7 @@ func addPids(processname string) {
 	}
 
 	for str, err := rd.ReadString('\n'); err == nil; str, err = rd.ReadString('\n') {
-		if fields := strings.Fields(str); len(fields) == 9 && processname == fields[8] {
+		if fields := strings.Fields(str); len(fields) == 9 && matches(fields[8], processname) {
 			pid, _ := strconv.Atoi(fields[1])
 			pids = append(pids, pid)
 		}
@@ -239,7 +262,7 @@ func logmessage(date string, time string, threadid int, processid int, prio stri
 	}
 
 	// Tag filter (if enabled)
-	if len(*ftag) > 0 && *ftag != tag {
+	if len(*ftag) > 0 && matches(tag, *ftag) {
 		return
 	}
 
@@ -255,7 +278,7 @@ func logmessage(date string, time string, threadid int, processid int, prio stri
 
 	// highlight (if enabled)
 	var pre string
-	if (len(*highlight) > 0 && tag == *highlight) || (len(*process) == 0 && contains(pids, processid)) {
+	if (len(*highlight) > 0 && matches(tag, *highlight)) || (len(*process) == 0 && contains(pids, processid)) {
 		pre = highlightMap[prio]
 	} else if *color {
 		// Apply color (based on priority) otherwise
@@ -339,4 +362,13 @@ func contains(list []int, elem int) bool {
 		}
 	}
 	return false
+}
+
+func matches(s string, pattern string) bool {
+	if !*casesensitive {
+		s = strings.ToLower(s)
+	}
+	
+	m, _ := regexp.MatchString(pattern, s)
+	return m
 }
