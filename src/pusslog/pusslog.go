@@ -26,6 +26,7 @@ var highlight = flag.String("hl", "", "highlight tag/process/package name")
 var priofilter = flag.String("prio", DEFAULT_PRIO_FILTER, "priority filter (VERBOSE/DEBUG/INFO/WARNING/ERROR/FATAL)")
 var minprio = flag.String("minprio", DEFAULT_MINPRIO, "minimum priority level")
 var file = flag.String("file", "", "write log to file")
+var color = flag.Bool("color", true, "enable colored output")
 
 var prioMap = map[string]int{
 	"V": 0,
@@ -239,7 +240,9 @@ func logmessage(date string, time string, threadid int, processid int, prio stri
 	}
 
 	// Apply color (based on priority)
-	pre = pre + colorMap[prio]
+	if *color {	
+		pre = pre + colorMap[prio]
+	}
 
 	// Wrap message and fill to terminal width
 	availableWidth := termcols - *taglength - 4
@@ -281,6 +284,7 @@ func logmessage(date string, time string, threadid int, processid int, prio stri
 		}
 	}
 
+	// Limit tag (if necessary)
 	if len(tag) > *taglength {
 		tag = tag[0:*taglength]
 	}
