@@ -12,6 +12,7 @@ Written in Go, for the purpose of learning Go and improving the Android developm
 * Filter messages from specific tag
 * Filter specific priorities
 * Filter by minimum priority
+* Wildcard and case insensitive filtering
 
 ## Building
 Pusslog is written in Go. To build pusslog, you'll need to install go on your system.
