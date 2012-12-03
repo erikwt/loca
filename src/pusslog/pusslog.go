@@ -114,6 +114,10 @@ func buildPatterns() {
 	if len(*highlight) > 0 {
 		*highlight = buildPattern(*highlight)
 	}
+	
+	if len(*ftag) > 0 {
+		*ftag = buildPattern(*ftag)
+	}
 }
 
 func buildPattern(pattern string) string {
@@ -262,7 +266,7 @@ func logmessage(date string, time string, threadid int, processid int, prio stri
 	}
 
 	// Tag filter (if enabled)
-	if len(*ftag) > 0 && matches(tag, *ftag) {
+	if len(*ftag) > 0 && !matches(tag, *ftag) {
 		return
 	}
 
