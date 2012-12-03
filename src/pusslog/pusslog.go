@@ -9,9 +9,9 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"regexp"
 	"strconv"
 	"strings"
-	"regexp"
 )
 
 const (
@@ -110,7 +110,7 @@ func buildPatterns() {
 	if len(*process) > 0 {
 		*process = buildPattern(*process)
 	}
-	
+
 	if len(*highlight) > 0 {
 		*highlight = buildPattern(*highlight)
 	}
@@ -120,7 +120,7 @@ func buildPattern(pattern string) string {
 	if !*casesensitive {
 		pattern = strings.ToLower(pattern)
 	}
-		
+
 	pattern = regexp.QuoteMeta(pattern)
 	pattern = strings.Replace(pattern, "\\*", ".*", -1)
 	return "^" + pattern + "$"
@@ -368,7 +368,7 @@ func matches(s string, pattern string) bool {
 	if !*casesensitive {
 		s = strings.ToLower(s)
 	}
-	
+
 	m, _ := regexp.MatchString(pattern, s)
 	return m
 }
