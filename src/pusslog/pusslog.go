@@ -240,7 +240,7 @@ func logmessage(date string, time string, threadid int, processid int, prio stri
 	}
 
 	// Apply color (based on priority)
-	if *color {	
+	if *color {
 		pre = pre + colorMap[prio]
 	}
 
