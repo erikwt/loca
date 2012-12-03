@@ -156,10 +156,7 @@ func getPids() {
 	pids = make([]int, 0)
 
 	if len(*process) > 0 {
-		if num := addPids(*process); num == 0 {
-			log.Fatal("Error getting pid for process: " + *process)
-			return
-		}
+		addPids(*process)
 	}
 
 	if len(*highlight) > 0 {
@@ -167,8 +164,7 @@ func getPids() {
 	}
 }
 
-func addPids(processname string) int {
-	num := 0
+func addPids(processname string) {
 	cmd := exec.Command("adb", "shell", "ps")
 
 	stdout, _ := cmd.StdoutPipe()
@@ -179,18 +175,15 @@ func addPids(processname string) int {
 
 	// Skip first line
 	if _, err := rd.ReadString('\n'); err != nil {
-		return 0
+		return
 	}
 
 	for str, err := rd.ReadString('\n'); err == nil; str, err = rd.ReadString('\n') {
 		if fields := strings.Fields(str); len(fields) == 9 && processname == fields[8] {
 			pid, _ := strconv.Atoi(fields[1])
 			pids = append(pids, pid)
-			num++
 		}
 	}
-
-	return num
 }
 
 func readlog(deviceId string) {
@@ -229,6 +222,13 @@ func parseline(l string) {
 		message := strings.TrimLeft(strings.Join(fields[6:], " "), ": ")
 
 		logmessage(date, time, threadid, processid, prio, tag, message)
+
+		if "ActivityManager" == tag &&
+			(len(*process) > 0 && strings.Contains(message, *process) ||
+				len(*highlight) > 0 && strings.Contains(message, *highlight)) {
+
+			getPids()
+		}
 	}
 }
 
