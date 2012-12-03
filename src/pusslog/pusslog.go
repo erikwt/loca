@@ -27,6 +27,7 @@ var priofilter = flag.String("prio", DEFAULT_PRIO_FILTER, "priority filter (VERB
 var minprio = flag.String("minprio", DEFAULT_MINPRIO, "minimum priority level")
 var file = flag.String("file", "", "write log to file")
 var color = flag.Bool("color", true, "enable colored output")
+var stdout = flag.Bool("stdout", true, "print to <stdout>")
 
 var prioMap = map[string]int{
 	"V": 0,
@@ -245,6 +246,19 @@ func logmessage(date string, time string, threadid int, processid int, prio stri
 	}
 
 	// Wrap message and fill to terminal width
+	message = wrapmessage(message)
+
+	// Limit tag (if necessary)
+	if len(tag) > *taglength {
+		tag = tag[0:*taglength]
+	}
+
+	// Build and print message
+	out := fmt.Sprintf("%s%-"+strconv.Itoa(*taglength)+"s[%s] %s%s\n", pre, tag, prio, message, Reset)
+	print(out)
+}
+
+func wrapmessage(message string) string {
 	availableWidth := termcols - *taglength - 4
 	parts := len(message) / availableWidth
 	if len(message)%availableWidth != 0 {
@@ -284,18 +298,18 @@ func logmessage(date string, time string, threadid int, processid int, prio stri
 		}
 	}
 
-	// Limit tag (if necessary)
-	if len(tag) > *taglength {
-		tag = tag[0:*taglength]
+	return message
+}
+
+func print(message string) {
+	// Print to stdout
+	if *stdout {	
+		fmt.Print(message)
 	}
 
-	// Print logmessage
-	out := fmt.Sprintf("%s%-"+strconv.Itoa(*taglength)+"s[%s] %s%s\n", pre, tag, prio, message, Reset)
-	fmt.Print(out)
-
-	// Print logmessage to file if needed
+	// Print to file if needed
 	if len(*file) > 0 {
-		if _, err := outputFile.Write([]byte(out)); err != nil {
+		if _, err := outputFile.Write([]byte(message)); err != nil {
 			log.Fatal("Error writing to logfile: "+*file, err)
 		}
 	}
