@@ -12,6 +12,7 @@ Written in Go, for the purpose of learning Go and improving the Android developm
 * Filter messages from specific tag
 * Filter specific priorities
 * Filter by minimum priority
+* Filter by regexp in log message (grep)
 * Wildcard and case insensitive filtering
 
 ## Building
