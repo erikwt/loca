@@ -56,8 +56,9 @@ var highlightMap = map[string]string{
 	"F": BgMagenta + FgBlack,
 }
 
-var pid, termcols int
+var termcols int
 var outputFile *os.File
+var pids []int
 
 func main() {
 	testEnv()
@@ -84,15 +85,7 @@ func main() {
 
 	fmt.Printf("Selected device: %s\n\n", deviceId)
 
-	if len(*process) > 0 {
-		pid, err = getPid(*process)
-		if err != nil {
-			log.Fatal("Error getting pid for process: " + *process)
-			return
-		}
-	} else if len(*highlight) > 0 {
-		pid, _ = getPid(*highlight)
-	}
+	getPids()
 
 	if len(*file) > 0 {
 		outputFile, err = os.Create(*file)
@@ -159,7 +152,23 @@ func getDeviceId() (string, error) {
 	return strings.Fields(devices[deviceIndex-1])[0], nil
 }
 
-func getPid(name string) (int, error) {
+func getPids(){
+	pids = make([]int, 0)
+	
+	if len(*process) > 0 {
+		if num := addPids(*process); num == 0 {
+			log.Fatal("Error getting pid for process: " + *process)
+			return
+		}
+	}
+	
+	if len(*highlight) > 0 {
+		addPids(*highlight)
+	}
+}
+
+func addPids(processname string) (int) {
+	num := 0
 	cmd := exec.Command("adb", "shell", "ps")
 
 	stdout, _ := cmd.StdoutPipe()
@@ -170,17 +179,18 @@ func getPid(name string) (int, error) {
 
 	// Skip first line
 	if _, err := rd.ReadString('\n'); err != nil {
-		return 0, err
+		return 0
 	}
 
 	for str, err := rd.ReadString('\n'); err == nil; str, err = rd.ReadString('\n') {
-		if fields := strings.Fields(str); len(fields) == 9 && name == fields[8] {
-			pid, _ := strconv.Atoi(fields[1])
-			return pid, nil
+		if fields := strings.Fields(str); len(fields) == 9 && processname == fields[8] {
+			pid, _ := strconv.Atoi(fields[1])		
+			pids = append(pids, pid)
+			num++
 		}
 	}
 
-	return 0, fmt.Errorf("Error finding package process")
+	return num
 }
 
 func readlog(deviceId string) {
@@ -224,7 +234,7 @@ func parseline(l string) {
 
 func logmessage(date string, time string, threadid int, processid int, prio string, tag string, message string) {
 	// process id filter (if enabled)
-	if len(*process) > 0 && pid != processid {
+	if len(*process) > 0 && !contains(pids, processid) {
 		return
 	}
 
@@ -245,7 +255,7 @@ func logmessage(date string, time string, threadid int, processid int, prio stri
 
 	// highlight (if enabled)
 	var pre string
-	if tag == *highlight || (len(*process) == 0 && pid == processid) {
+	if tag == *highlight || (len(*process) == 0 && contains(pids, processid)) {
 		pre = highlightMap[prio]
 	} else if *color {
 		// Apply color (based on priority) otherwise
@@ -321,3 +331,8 @@ func print(message string) {
 		}
 	}
 }
+
+func contains(list []int, elem int) bool { 
+        for _, t := range list { if t == elem { return true } } 
+        return false 
+} 
