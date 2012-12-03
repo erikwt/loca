@@ -27,6 +27,7 @@ var highlight = flag.String("hl", "", "highlight tag/process/package name")
 var priofilter = flag.String("prio", DEFAULT_PRIO_FILTER, "priority filter (VERBOSE/DEBUG/INFO/WARNING/ERROR/FATAL)")
 var minprio = flag.String("minprio", DEFAULT_MINPRIO, "minimum priority level")
 var file = flag.String("file", "", "write log to file")
+var grep = flag.String("grep", "", "grep on log message (regex filter)")
 var color = flag.Bool("color", true, "enable colored output")
 var stdout = flag.Bool("stdout", true, "print to <stdout>")
 var casesensitive = flag.Bool("casesensitive", false, "case sensitive filters")
@@ -114,9 +115,13 @@ func buildPatterns() {
 	if len(*highlight) > 0 {
 		*highlight = buildPattern(*highlight)
 	}
-	
+
 	if len(*ftag) > 0 {
 		*ftag = buildPattern(*ftag)
+	}
+	
+	if !*casesensitive && len(*grep) > 0 {
+		*grep = "(?i)" + *grep
 	}
 }
 
@@ -278,6 +283,13 @@ func logmessage(date string, time string, threadid int, processid int, prio stri
 	// min prio filter
 	if prioMap[*minprio] > prioMap[prio] {
 		return
+	}
+	
+	// grep filter
+	if len(*grep) > 0 {
+		if matches, _ := regexp.MatchString(*grep, message); !matches {
+			return
+		}
 	}
 
 	// highlight (if enabled)
