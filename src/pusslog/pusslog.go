@@ -37,12 +37,21 @@ var prioMap = map[string]int{
 }
 
 var colorMap = map[string]string{
+	"V": FgGreen,
+	"D": FgCyan,
+	"I": FgYellow,
+	"W": FgBlue,
+	"E": FgRed,
+	"F": FgMagenta,
+}
+
+var highlightMap = map[string]string{
 	"V": BgGreen + FgBlack,
 	"D": BgCyan + FgBlack,
 	"I": BgYellow + FgBlack,
-	"W": BgBlue + FgWhite,
-	"E": BgRed + FgWhite,
-	"F": BgMagenta + FgWhite,
+	"W": BgBlue + FgBlack,
+	"E": BgRed + FgBlack,
+	"F": BgMagenta + FgBlack,
 }
 
 var pid, termcols int
@@ -232,14 +241,14 @@ func logmessage(date string, time string, threadid int, processid int, prio stri
 		return
 	}
 
-	// highlight (if enabled)
 	var pre string
+	// highlight (if enabled)
 	if tag == *highlight || (len(*process) == 0 && pid == processid) {
-		pre = Bold + Underline
+		pre = highlightMap[prio]
+	} else {
+		// Apply color (based on priority) otherwise
+		pre = colorMap[prio]
 	}
-
-	// Apply color (based on priority)
-	pre = pre + colorMap[prio]
 
 	// Wrap message and fill to terminal width
 	availableWidth := termcols - *taglength - 4
