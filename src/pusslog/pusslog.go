@@ -152,22 +152,22 @@ func getDeviceId() (string, error) {
 	return strings.Fields(devices[deviceIndex-1])[0], nil
 }
 
-func getPids(){
+func getPids() {
 	pids = make([]int, 0)
-	
+
 	if len(*process) > 0 {
 		if num := addPids(*process); num == 0 {
 			log.Fatal("Error getting pid for process: " + *process)
 			return
 		}
 	}
-	
+
 	if len(*highlight) > 0 {
 		addPids(*highlight)
 	}
 }
 
-func addPids(processname string) (int) {
+func addPids(processname string) int {
 	num := 0
 	cmd := exec.Command("adb", "shell", "ps")
 
@@ -184,7 +184,7 @@ func addPids(processname string) (int) {
 
 	for str, err := rd.ReadString('\n'); err == nil; str, err = rd.ReadString('\n') {
 		if fields := strings.Fields(str); len(fields) == 9 && processname == fields[8] {
-			pid, _ := strconv.Atoi(fields[1])		
+			pid, _ := strconv.Atoi(fields[1])
 			pids = append(pids, pid)
 			num++
 		}
@@ -255,7 +255,7 @@ func logmessage(date string, time string, threadid int, processid int, prio stri
 
 	// highlight (if enabled)
 	var pre string
-	if tag == *highlight || (len(*process) == 0 && contains(pids, processid)) {
+	if (len(*highlight) > 0 && tag == *highlight) || (len(*process) == 0 && contains(pids, processid)) {
 		pre = highlightMap[prio]
 	} else if *color {
 		// Apply color (based on priority) otherwise
@@ -320,7 +320,7 @@ func wrapmessage(message string) string {
 
 func print(message string) {
 	// Print to stdout
-	if *stdout {	
+	if *stdout {
 		fmt.Print(message)
 	}
 
@@ -332,7 +332,11 @@ func print(message string) {
 	}
 }
 
-func contains(list []int, elem int) bool { 
-        for _, t := range list { if t == elem { return true } } 
-        return false 
-} 
+func contains(list []int, elem int) bool {
+	for _, t := range list {
+		if t == elem {
+			return true
+		}
+	}
+	return false
+}
