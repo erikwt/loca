@@ -106,28 +106,6 @@ func buildPattern(pattern string) string {
 	return pattern
 }
 
-func parseline(l string) {
-	fields := strings.Fields(l)
-	if len(fields) >= 7 {
-		date := fields[0]
-		time := fields[1]
-		threadid, _ := strconv.Atoi(fields[2])
-		processid, _ := strconv.Atoi(fields[3])
-		prio := fields[4]
-		tag := strings.TrimRight(fields[5], ":")
-		message := strings.TrimLeft(strings.Join(fields[6:], " "), ": ")
-
-		logmessage(date, time, threadid, processid, prio, tag, message)
-
-		if "ActivityManager" == tag &&
-			(len(*process) > 0 && strings.Contains(message, *process) ||
-				len(*highlight) > 0 && strings.Contains(message, *highlight)) {
-
-			getPids()
-		}
-	}
-}
-
 func logmessage(date string, time string, threadid int, processid int, prio string, tag string, message string) {
 	// process id filter (if enabled)
 	if len(*process) > 0 && !contains(pids, processid) {
