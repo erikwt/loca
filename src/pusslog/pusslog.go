@@ -1,27 +1,13 @@
 package main
 
 import (
-	"bufio"
-	"errors"
 	"flag"
 	"fmt"
-	"io"
 	"log"
 	"os"
-	"os/exec"
 	"regexp"
 	"strconv"
 	"strings"
-)
-
-const (
-	DEFAULT_TAG_LENGTH  = 30
-	DEFAULT_PRIO_FILTER = "VDIWEF"
-	DEFAULT_MINPRIO     = "V"
-
-	REGEXP_ADB_STD        = "(?P<prio>.)/(?P<tag>.+)\\(\\s*\\d+\\):\\s+(?P<msg>.+)"
-	REGEXP_ADB_THREADTIME = "\\d+-\\d+\\s+\\d+:\\d+:\\d+.\\d+\\s+\\d+\\s+\\d+\\s+(P<prio>.)\\s+(P<tag>.+):\\s+(P<msg>.+)"
-	REGEXP_PUSSLOG_STD    = "(?P<tag>.+)\\s*\\[(?P<prio>.)\\]\\s+(?P<msg>.+)"
 )
 
 var taglength = flag.Int("tl", DEFAULT_TAG_LENGTH, "maximum tag length")
@@ -37,40 +23,13 @@ var stdout = flag.Bool("stdout", true, "print to <stdout>")
 var casesensitive = flag.Bool("casesensitive", false, "case sensitive filters")
 var input = flag.String("input", "adb", "input (adb / stdin / <filename>")
 
-var prioMap = map[string]int{
-	"V": 0,
-	"D": 1,
-	"I": 2,
-	"W": 3,
-	"E": 4,
-	"F": 5,
-}
-
-var colorMap = map[string]string{
-	"V": FgGreen,
-	"D": FgCyan,
-	"I": FgYellow,
-	"W": FgBlue,
-	"E": FgRed,
-	"F": FgMagenta,
-}
-
-var highlightMap = map[string]string{
-	"V": BgGreen + FgBlack,
-	"D": BgCyan + FgBlack,
-	"I": BgYellow + FgBlack,
-	"W": BgBlue + FgBlack,
-	"E": BgRed + FgBlack,
-	"F": BgMagenta + FgBlack,
-}
-
 var processPattern, highlightPattern, ftagPattern string
 var termcols int
 var outputFile *os.File
 var pids []int
 
 func main() {
-	termcols = GetWinsize()
+	termcols = getTermWidth()
 
 	flag.Parse()
 	buildPatterns()
@@ -118,12 +77,6 @@ func main() {
 
 }
 
-func testEnv() {
-	if _, err := exec.LookPath("adb"); err != nil {
-		log.Fatal("Error: adb command not found in PATH")
-	}
-}
-
 func buildPatterns() {
 	if len(*process) > 0 {
 		processPattern = buildPattern(*process)
@@ -143,174 +96,14 @@ func buildPatterns() {
 }
 
 func buildPattern(pattern string) string {
-	if !*casesensitive {
-		pattern = strings.ToLower(pattern)
-	}
-
 	pattern = regexp.QuoteMeta(pattern)
 	pattern = strings.Replace(pattern, "\\*", ".*", -1)
-	return "^" + pattern + "$"
-}
-
-func getDeviceId() (string, error) {
-	cmd := exec.Command("adb", "devices")
-	stdout, _ := cmd.StdoutPipe()
-	rd := bufio.NewReader(stdout)
-	if err := cmd.Start(); err != nil {
-		return "", fmt.Errorf("Error getting devices: %s", err)
+	pattern = "^" + pattern + "$"
+	if !*casesensitive {
+		pattern = "(?i)" + pattern
 	}
-
-	// Skip irrelevant lines
-	for {
-		str, err := rd.ReadString('\n')
-		if err != nil {
-			return "", errors.New("Error getting devices")
-		}
-		if len(str) > 0 && strings.TrimSpace(str)[0] != '*' {
-			break
-		}
-	}
-
-	devices := make([]string, 0)
-	for str, err := rd.ReadString('\n'); err == nil; str, err = rd.ReadString('\n') {
-		if str = strings.TrimSpace(str); len(str) > 0 {
-			devices = append(devices, str)
-		}
-	}
-
-	if len(devices) == 0 {
-		return "", errors.New("No device connected")
-	}
-
-	if len(devices) == 1 {
-		f := strings.Fields(devices[0])
-		return f[0], nil
-	}
-
-	fmt.Println("Multiple devices found!\n")
-	for i := 0; i < len(devices); i++ {
-		fmt.Printf("[%d]\t%s\n", i+1, devices[i])
-	}
-
-	deviceIndex := 0
-	for deviceIndex <= 0 || deviceIndex > len(devices) {
-		fmt.Printf("\nUse device number: ")
-		fmt.Scanf("%d", &deviceIndex)
-	}
-
-	return strings.Fields(devices[deviceIndex-1])[0], nil
-}
-
-func getPids() {
-	pids = make([]int, 0)
-
-	if len(*process) > 0 {
-		addPids(*process)
-	}
-
-	if len(*highlight) > 0 {
-		addPids(*highlight)
-	}
-}
-
-func addPids(processname string) {
-	cmd := exec.Command("adb", "shell", "ps")
-
-	stdout, _ := cmd.StdoutPipe()
-	rd := bufio.NewReader(stdout)
-	if err := cmd.Start(); err != nil {
-		log.Fatal("Buffer Error:", err)
-	}
-
-	// Skip first line
-	if _, err := rd.ReadString('\n'); err != nil {
-		return
-	}
-
-	for str, err := rd.ReadString('\n'); err == nil; str, err = rd.ReadString('\n') {
-		if fields := strings.Fields(str); len(fields) == 9 && matches(fields[8], processname) {
-			pid, _ := strconv.Atoi(fields[1])
-			pids = append(pids, pid)
-		}
-	}
-}
-
-func adbReadlog(deviceId string) {
-	cmd := exec.Command("adb", "-s", deviceId, "logcat", "-v", "threadtime")
-
-	stdout, _ := cmd.StdoutPipe()
-	rd := bufio.NewReader(stdout)
-	if err := cmd.Start(); err != nil {
-		log.Fatal("Buffer Error:", err)
-	}
-
-	for {
-		str, err := rd.ReadString('\n')
-		if err != nil {
-			if err == io.EOF {
-				log.Println("Device disconnected.")
-			} else {
-				log.Fatal("Read Error: ", err)
-			}
-			return
-		}
-
-		parseline(str)
-	}
-}
-
-func fileReadlog(file *os.File) {
-	rd := bufio.NewReader(file)
-
-	formatAdbStd, err := regexp.Compile(REGEXP_ADB_STD)
-	if err != nil {
-		log.Fatal("Regexp compile error", err)
-	}
-	formatAdbThreadtime, err := regexp.Compile(REGEXP_ADB_THREADTIME)
-	if err != nil {
-		log.Fatal("Regexp compile error", err)
-	}
-	formatPusslogStd, err := regexp.Compile(REGEXP_PUSSLOG_STD)
-	if err != nil {
-		log.Fatal("Regexp compile error", err)
-	}
-
-	for {
-		str, err := rd.ReadString('\n')
-		if err != nil {
-			if err != io.EOF {
-				log.Fatal("Read Error: ", err)
-			}
-			return
-		}
-
-		var format *regexp.Regexp
-		if formatAdbStd.MatchString(str) {
-			format = formatAdbStd
-		} else if formatAdbThreadtime.MatchString(str) {
-			format = formatAdbThreadtime
-		} else if formatPusslogStd.MatchString(str) {
-			format = formatPusslogStd
-		} else {
-			log.Println("Does not match any format: " + str)
-			continue
-		}
-
-		var tag, prio, msg string
-		matches := format.FindStringSubmatch(str)
-		names := format.SubexpNames()
-		for i, n := range names {
-			if n == "tag" {
-				tag = matches[i]
-			} else if n == "prio" {
-				prio = matches[i]
-			} else if n == "msg" {
-				msg = matches[i]
-			}
-		}
-
-		logmessage("", "", 0, 0, prio, tag, msg)
-	}
+	
+	return pattern
 }
 
 func parseline(l string) {
@@ -398,7 +191,7 @@ func wrapmessage(message string) string {
 	if termcols == -1 {
 		return message
 	}
-	
+
 	availableWidth := termcols - *taglength - 4
 	parts := len(message) / availableWidth
 	if len(message)%availableWidth != 0 {
@@ -451,10 +244,6 @@ func contains(list []int, elem int) bool {
 }
 
 func matches(s string, pattern string) bool {
-	if !*casesensitive {
-		s = strings.ToLower(s)
-	}
-
 	m, _ := regexp.MatchString(pattern, s)
 	return m
 }

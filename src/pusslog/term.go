@@ -41,7 +41,7 @@ type winsize struct {
 	Ypixel uint16
 }
 
-func GetWinsize() (int) {
+func getTermWidth() int {
 	ws := new(winsize)
 
 	r1, _, _ := syscall.Syscall(syscall.SYS_IOCTL,
@@ -53,6 +53,6 @@ func GetWinsize() (int) {
 	if int(r1) == -1 {
 		return -1
 	}
-	
+
 	return int(ws.Col)
 }
