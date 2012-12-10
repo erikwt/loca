@@ -47,7 +47,7 @@ func GetWinsize() (*winsize, error) {
 
 	r1, _, errno := syscall.Syscall(syscall.SYS_IOCTL,
 		uintptr(syscall.Stdin),
-		uintptr(_TIOCGWINSZ),
+		uintptr(syscall.TIOCGWINSZ),
 		uintptr(unsafe.Pointer(ws)),
 	)
 
