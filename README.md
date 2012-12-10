@@ -14,6 +14,7 @@ Written in Go, for the purpose of learning Go and improving the Android developm
 * Filter by minimum priority
 * Filter by regexp in log message (grep)
 * Wildcard and case insensitive filtering
+* Read logs from device (adb), logfile or standard input (stdin)
 
 ## Building
 Pusslog is written in Go. To build pusslog, you'll need to install go on your system.

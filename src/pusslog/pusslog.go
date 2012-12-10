@@ -1,6 +1,7 @@
 package main
 
 import (
+    "code.google.com/p/go.crypto/ssh/terminal"
 	"flag"
 	"fmt"
 	"log"
@@ -21,7 +22,7 @@ var grep = flag.String("grep", "", "grep on log message (regex filter)")
 var color = flag.Bool("color", true, "enable colored output")
 var stdout = flag.Bool("stdout", true, "print to <stdout>")
 var casesensitive = flag.Bool("casesensitive", false, "case sensitive filters")
-var input = flag.String("input", "adb", "input (adb / stdin / <filename>)")
+var input = flag.String("input", "auto", "input (auto / adb / stdin / <filename>)")
 
 var processPattern, highlightPattern, ftagPattern string
 var termcols int
@@ -42,6 +43,14 @@ func main() {
 		outputFile = f
 	}
 
+    if *input == "auto" {
+        if !terminal.IsTerminal(int(os.Stdin.Fd())) {
+            *input = "stdin"
+        } else {
+            *input = "adb"
+        }
+    }
+    
 	switch *input {
 	case "adb":
 		testEnv()
@@ -102,7 +111,7 @@ func buildPattern(pattern string) string {
 	if !*casesensitive {
 		pattern = "(?i)" + pattern
 	}
-	
+
 	return pattern
 }
 
