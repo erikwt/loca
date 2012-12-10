@@ -59,6 +59,7 @@ var highlightMap = map[string]string{
 	"F": BgMagenta + FgBlack,
 }
 
+var processPattern, highlightPattern, ftagPattern string
 var termcols int
 var outputFile *os.File
 var pids []int
@@ -109,17 +110,17 @@ func testEnv() {
 
 func buildPatterns() {
 	if len(*process) > 0 {
-		*process = buildPattern(*process)
+		processPattern = buildPattern(*process)
 	}
 
 	if len(*highlight) > 0 {
-		*highlight = buildPattern(*highlight)
+		highlightPattern = buildPattern(*highlight)
 	}
 
 	if len(*ftag) > 0 {
-		*ftag = buildPattern(*ftag)
+		ftagPattern = buildPattern(*ftag)
 	}
-	
+
 	if !*casesensitive && len(*grep) > 0 {
 		*grep = "(?i)" + *grep
 	}
@@ -271,7 +272,7 @@ func logmessage(date string, time string, threadid int, processid int, prio stri
 	}
 
 	// Tag filter (if enabled)
-	if len(*ftag) > 0 && !matches(tag, *ftag) {
+	if len(*ftag) > 0 && !matches(tag, ftagPattern) {
 		return
 	}
 
@@ -284,7 +285,7 @@ func logmessage(date string, time string, threadid int, processid int, prio stri
 	if prioMap[*minprio] > prioMap[prio] {
 		return
 	}
-	
+
 	// grep filter
 	if len(*grep) > 0 {
 		if matches, _ := regexp.MatchString(*grep, message); !matches {
@@ -294,7 +295,7 @@ func logmessage(date string, time string, threadid int, processid int, prio stri
 
 	// highlight (if enabled)
 	var pre string
-	if (len(*highlight) > 0 && matches(tag, *highlight)) || (len(*process) == 0 && contains(pids, processid)) {
+	if (len(*highlight) > 0 && matches(tag, highlightPattern)) || (len(*process) == 0 && contains(pids, processid)) {
 		pre = highlightMap[prio]
 	} else if *color {
 		// Apply color (based on priority) otherwise
