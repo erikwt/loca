@@ -18,6 +18,10 @@ const (
 	DEFAULT_TAG_LENGTH  = 30
 	DEFAULT_PRIO_FILTER = "VDIWEF"
 	DEFAULT_MINPRIO     = "V"
+
+	REGEXP_ADB_STD        = "(?P<prio>.)/(?P<tag>.+)\\(\\s*\\d+\\):\\s+(?P<msg>.+)"
+	REGEXP_ADB_THREADTIME = "\\d+-\\d+\\s+\\d+:\\d+:\\d+.\\d+\\s+\\d+\\s+\\d+\\s+(P<prio>.)\\s+(P<tag>.+):\\s+(P<msg>.+)"
+	REGEXP_PUSSLOG_STD    = "(?P<tag>.+)\\s*\\[(?P<prio>.)\\]\\s+(?P<msg>.+)"
 )
 
 var taglength = flag.Int("tl", DEFAULT_TAG_LENGTH, "maximum tag length")
@@ -31,6 +35,7 @@ var grep = flag.String("grep", "", "grep on log message (regex filter)")
 var color = flag.Bool("color", true, "enable colored output")
 var stdout = flag.Bool("stdout", true, "print to <stdout>")
 var casesensitive = flag.Bool("casesensitive", false, "case sensitive filters")
+var input = flag.String("input", "adb", "input (adb / stdin / <filename>")
 
 var prioMap = map[string]int{
 	"V": 0,
@@ -65,41 +70,52 @@ var outputFile *os.File
 var pids []int
 
 func main() {
-	testEnv()
-
-	termsize, err := GetWinsize()
-	if err != nil {
-		log.Fatal("Error:", err)
-		return
-	}
-	termcols = int(termsize.Col)
+	termcols = GetWinsize()
 
 	flag.Parse()
 	buildPatterns()
 
-	deviceId, err := getDeviceId()
-	if err != nil {
-		log.Fatal("Error: ", err)
-		return
-	}
-
-	if deviceId == "????????????" {
-		log.Fatal("No permissions for device")
-		return
-	}
-
-	fmt.Printf("Selected device: %s\n\n", deviceId)
-
-	getPids()
-
 	if len(*file) > 0 {
-		outputFile, err = os.Create(*file)
+		f, err := os.Create(*file)
 		if err != nil {
 			log.Fatal("Error opening output file: "+*file, err)
 		}
+		outputFile = f
 	}
 
-	readlog(deviceId)
+	switch *input {
+	case "adb":
+		testEnv()
+		deviceId, err := getDeviceId()
+		if err != nil {
+			log.Fatal("Error: ", err)
+			return
+		}
+
+		if deviceId == "????????????" {
+			log.Fatal("No permissions for device")
+			return
+		}
+
+		fmt.Printf("Selected device: %s\n\n", deviceId)
+
+		getPids()
+
+		adbReadlog(deviceId)
+
+	case "stdin":
+		fileReadlog(os.Stdin)
+
+	default:
+		file, err := os.Open(*input)
+		if err != nil {
+			log.Fatal("Error: ", err)
+			return
+		}
+
+		fileReadlog(file)
+	}
+
 }
 
 func testEnv() {
@@ -219,7 +235,7 @@ func addPids(processname string) {
 	}
 }
 
-func readlog(deviceId string) {
+func adbReadlog(deviceId string) {
 	cmd := exec.Command("adb", "-s", deviceId, "logcat", "-v", "threadtime")
 
 	stdout, _ := cmd.StdoutPipe()
@@ -240,6 +256,60 @@ func readlog(deviceId string) {
 		}
 
 		parseline(str)
+	}
+}
+
+func fileReadlog(file *os.File) {
+	rd := bufio.NewReader(file)
+
+	formatAdbStd, err := regexp.Compile(REGEXP_ADB_STD)
+	if err != nil {
+		log.Fatal("Regexp compile error", err)
+	}
+	formatAdbThreadtime, err := regexp.Compile(REGEXP_ADB_THREADTIME)
+	if err != nil {
+		log.Fatal("Regexp compile error", err)
+	}
+	formatPusslogStd, err := regexp.Compile(REGEXP_PUSSLOG_STD)
+	if err != nil {
+		log.Fatal("Regexp compile error", err)
+	}
+
+	for {
+		str, err := rd.ReadString('\n')
+		if err != nil {
+			if err != io.EOF {
+				log.Fatal("Read Error: ", err)
+			}
+			return
+		}
+
+		var format *regexp.Regexp
+		if formatAdbStd.MatchString(str) {
+			format = formatAdbStd
+		} else if formatAdbThreadtime.MatchString(str) {
+			format = formatAdbThreadtime
+		} else if formatPusslogStd.MatchString(str) {
+			format = formatPusslogStd
+		} else {
+			log.Println("Does not match any format: " + str)
+			continue
+		}
+
+		var tag, prio, msg string
+		matches := format.FindStringSubmatch(str)
+		names := format.SubexpNames()
+		for i, n := range names {
+			if n == "tag" {
+				tag = matches[i]
+			} else if n == "prio" {
+				prio = matches[i]
+			} else if n == "msg" {
+				msg = matches[i]
+			}
+		}
+
+		logmessage("", "", 0, 0, prio, tag, msg)
 	}
 }
 
@@ -303,19 +373,32 @@ func logmessage(date string, time string, threadid int, processid int, prio stri
 	}
 
 	// Wrap message and fill to terminal width
-	message = wrapmessage(message)
+	wrappedmessage := wrapmessage(message)
 
 	// Limit tag (if necessary)
 	if len(tag) > *taglength {
 		tag = tag[0:*taglength]
 	}
 
-	// Build and print message
-	out := fmt.Sprintf("%s%-"+strconv.Itoa(*taglength)+"s[%s] %s%s\n", pre, tag, prio, message, Reset)
-	print(out)
+	// Print to stdout
+	if *stdout {
+		fmt.Printf("%s%-"+strconv.Itoa(*taglength)+"s[%s] %s%s\n", pre, tag, prio, wrappedmessage, Reset)
+	}
+
+	// Print to file if needed
+	if len(*file) > 0 {
+		message = fmt.Sprintf("%-"+strconv.Itoa(*taglength)+"s[%s] %s\n", tag, prio, message)
+		if _, err := outputFile.Write([]byte(message)); err != nil {
+			log.Fatal("Error writing to logfile: "+*file, err)
+		}
+	}
 }
 
 func wrapmessage(message string) string {
+	if termcols == -1 {
+		return message
+	}
+	
 	availableWidth := termcols - *taglength - 4
 	parts := len(message) / availableWidth
 	if len(message)%availableWidth != 0 {
@@ -356,20 +439,6 @@ func wrapmessage(message string) string {
 	}
 
 	return message
-}
-
-func print(message string) {
-	// Print to stdout
-	if *stdout {
-		fmt.Print(message)
-	}
-
-	// Print to file if needed
-	if len(*file) > 0 {
-		if _, err := outputFile.Write([]byte(message)); err != nil {
-			log.Fatal("Error writing to logfile: "+*file, err)
-		}
-	}
 }
 
 func contains(list []int, elem int) bool {

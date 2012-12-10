@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"syscall"
 	"unsafe"
 )
@@ -42,18 +41,18 @@ type winsize struct {
 	Ypixel uint16
 }
 
-func GetWinsize() (*winsize, error) {
+func GetWinsize() (int) {
 	ws := new(winsize)
 
-	r1, _, errno := syscall.Syscall(syscall.SYS_IOCTL,
+	r1, _, _ := syscall.Syscall(syscall.SYS_IOCTL,
 		uintptr(syscall.Stdin),
 		uintptr(syscall.TIOCGWINSZ),
 		uintptr(unsafe.Pointer(ws)),
 	)
 
 	if int(r1) == -1 {
-		return nil, fmt.Errorf("Unable to get terminfo. Errno: %d", errno)
+		return -1
 	}
-
-	return ws, nil
+	
+	return int(ws.Col)
 }
