@@ -6,7 +6,7 @@ const (
 	DEFAULT_MINPRIO     = "V"
 
 	REGEXP_ADB_STD        = "(?P<prio>.)/(?P<tag>.+)\\(\\s*\\d+\\):\\s+(?P<msg>.+)"
-	REGEXP_ADB_THREADTIME = "\\d+-\\d+\\s+\\d+:\\d+:\\d+.\\d+\\s+\\d+\\s+\\d+\\s+(P<prio>.)\\s+(P<tag>.+):\\s+(P<msg>.+)"
+	REGEXP_ADB_THREADTIME = "\\d+-\\d+\\s+\\d+:\\d+:\\d+.\\d+\\s+\\d+\\s+\\d+\\s+(?P<prio>.)\\s+(?P<tag>.+?):\\s+(?P<msg>.+)"
 	REGEXP_PUSSLOG_STD    = "(?P<tag>.+)\\s*\\[(?P<prio>.)\\]\\s+(?P<msg>.+)"
 )
 
