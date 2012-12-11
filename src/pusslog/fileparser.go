@@ -41,7 +41,7 @@ func fileReadlog(file *os.File) {
 		} else if formatPusslogStd.MatchString(str) {
 			format = formatPusslogStd
 		} else {
-			log.Println("Does not match any format: " + str)
+			log.Print("Does not match any known logformat: " + str)
 			continue
 		}
 

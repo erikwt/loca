@@ -231,6 +231,6 @@ func contains(list []int, elem int) bool {
 }
 
 func matches(s string, pattern string) bool {
-	m, _ := regexp.MatchString(pattern, s)
+	m, _ := regexp.MatchString(pattern, strings.TrimSpace(s))
 	return m
 }
