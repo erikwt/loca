@@ -45,7 +45,7 @@ Now you can run the 'pusslog' executable:
 Or put the executable somewhere in your $PATH.
 
 ## Example usages
-Note that many options can be combined to allow for very complex filtering and hightlighing. Pusslog accepts
+Note that many options can be combined to allow for very complex filtering and highlighting. Pusslog accepts
 input directly from a device (over adb), from a file or from the standard input (pipe).
 
 ``` bash
