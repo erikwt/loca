@@ -45,6 +45,9 @@ Now you can run the 'pusslog' executable:
 Or put the executable somewhere in your $PATH.
 
 ## Example usages
+Note that many options can be combined to allow for very complex filtering and hightlighing. Pusslog accepts
+input directly from a device (over adb), from a file or from the standard input (pipe).
+
 ``` bash
 # Same as 'adb logcat' but prettier
 pusslog
@@ -82,6 +85,9 @@ pusslog -grep http://.+.com
 # combination of filters and use of wildcards ;-)
 pusslog -t *man* -hl eu.erikw.myapp -minprio I
 ```
+
+## Problems / issues / bugs
+Please report issues in the [issue tracker](https://github.com/erikwt/pusslog/issues).
 
 ## License
 Pusslog is licenced under the GNU GPL version 3.
