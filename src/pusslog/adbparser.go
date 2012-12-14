@@ -129,8 +129,8 @@ func parseline(l string) {
 	if len(fields) >= 7 {
 		date := fields[0]
 		time := fields[1]
-		threadid, _ := strconv.Atoi(fields[2])
-		processid, _ := strconv.Atoi(fields[3])
+		processid, _ := strconv.Atoi(fields[2])
+		threadid, _ := strconv.Atoi(fields[3])
 		prio := fields[4]
 		tag := strings.TrimRight(fields[5], ":")
 		message := strings.TrimLeft(strings.Join(fields[6:], " "), ": ")
