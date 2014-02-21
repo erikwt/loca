@@ -1,7 +1,6 @@
 package main
 
 import (
-    "code.google.com/p/go.crypto/ssh/terminal"
 	"flag"
 	"fmt"
 	"log"
@@ -9,6 +8,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"github.com/pebbe/util"
 )
 
 var taglength = flag.Int("tl", DEFAULT_TAG_LENGTH, "maximum tag length")
@@ -44,7 +44,7 @@ func main() {
 	}
 
     if *input == "auto" {
-        if !terminal.IsTerminal(int(os.Stdin.Fd())) {
+        if !util.IsTerminal(os.Stdin) {
             *input = "stdin"
         } else {
             *input = "adb"
