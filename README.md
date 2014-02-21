@@ -34,6 +34,7 @@ Build pusslog:
 ``` bash
 cd /path/to/pusslog/source # path where you cloned the source
 export GOPATH=$(pwd)
+go get github.com/pebbe/util
 go build pusslog
 ```
 
@@ -91,6 +92,9 @@ Please report issues in the [issue tracker](https://github.com/erikwt/pusslog/is
 
 ## License
 Pusslog is licenced under the GNU GPL version 3.
+
+## Open source
+Thanks to [pebbe](https://github.com/pebbe) for the IsTerminal(..) implementation in the [go util source](https://github.com/pebbe/util).
 
 ## Author
 I'm a young, enthusiastic hacker from Amsterdam. I study computer science at the VU (Free University) and my work mostly involves Android programming. I do a lot of hacking in my spare time, resulting in many projects I want to share with the world.
