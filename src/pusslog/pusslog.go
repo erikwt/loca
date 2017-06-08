@@ -143,7 +143,9 @@ func logmessage(date string, time string, threadid int, processid int, prio stri
 	var pre string
 	if (len(*highlight) > 0 && matches(tag, highlightPattern)) || (len(*process) == 0 && contains(pids, processid)) {
 		pre = highlightMap[prio]
-		message = wrapmessage(message)
+		if termcols > 0 {
+			message = wrapmessage(message)
+		}
 	} else if *color {
 		// Apply color (based on priority) otherwise
 		pre = colorMap[prio]
