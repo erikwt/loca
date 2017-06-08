@@ -3,12 +3,12 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/pebbe/util"
 	"log"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
-	"github.com/pebbe/util"
 )
 
 var taglength = flag.Int("tl", DEFAULT_TAG_LENGTH, "maximum tag length")
@@ -43,14 +43,14 @@ func main() {
 		outputFile = f
 	}
 
-    if *input == "auto" {
-        if !util.IsTerminal(os.Stdin) {
-            *input = "stdin"
-        } else {
-            *input = "adb"
-        }
-    }
-    
+	if *input == "auto" {
+		if !util.IsTerminal(os.Stdin) {
+			*input = "stdin"
+		} else {
+			*input = "adb"
+		}
+	}
+
 	switch *input {
 	case "adb":
 		testEnv()
