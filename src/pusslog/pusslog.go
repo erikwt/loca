@@ -24,7 +24,7 @@ var stdout = flag.Bool("stdout", true, "print to <stdout>")
 var casesensitive = flag.Bool("casesensitive", false, "case sensitive filters")
 var input = flag.String("input", "auto", "input (auto / adb / stdin / <filename>)")
 
-var processPattern, highlightPattern, ftagPattern string
+var highlightPattern, ftagPattern string
 var termcols int
 var outputFile *os.File
 var pids []int
@@ -87,10 +87,6 @@ func main() {
 }
 
 func buildPatterns() {
-	if len(*process) > 0 {
-		processPattern = buildPattern(*process)
-	}
-
 	if len(*highlight) > 0 {
 		highlightPattern = buildPattern(*highlight)
 	}
