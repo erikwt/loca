@@ -156,6 +156,11 @@ func logmessage(date string, time string, threadid int, processid int, prio stri
 		tag = tag[0:*taglength]
 	}
 
+	// Mark stacktrace by inserting tab as indent
+	if matches(message, REGEXP_STACKTRACE) {
+		message = "\t" + message
+	}
+
 	// Print to stdout
 	if *stdout {
 		fmt.Printf("%s%-"+strconv.Itoa(*taglength)+"s[%s] %s%s\n", pre, tag, prio, message, Reset)
