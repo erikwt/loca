@@ -26,6 +26,7 @@ _testmain.go
 *.exe
 
 /pusslog*
-bin
+bin/
+.idea/
 
 src/github.com/
