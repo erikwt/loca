@@ -147,13 +147,11 @@ func logmessage(date string, time string, threadid int, processid int, prio stri
 	var pre string
 	if (len(*highlight) > 0 && matches(tag, highlightPattern)) || (len(*process) == 0 && contains(pids, processid)) {
 		pre = highlightMap[prio]
+		message = wrapmessage(message)
 	} else if *color {
 		// Apply color (based on priority) otherwise
 		pre = colorMap[prio]
 	}
-
-	// Wrap message and fill to terminal width
-	wrappedmessage := wrapmessage(message)
 
 	// Limit tag (if necessary)
 	if len(tag) > *taglength {
@@ -162,7 +160,7 @@ func logmessage(date string, time string, threadid int, processid int, prio stri
 
 	// Print to stdout
 	if *stdout {
-		fmt.Printf("%s%-"+strconv.Itoa(*taglength)+"s[%s] %s%s\n", pre, tag, prio, wrappedmessage, Reset)
+		fmt.Printf("%s%-"+strconv.Itoa(*taglength)+"s[%s] %s%s\n", pre, tag, prio, message, Reset)
 	}
 
 	// Print to file if needed
