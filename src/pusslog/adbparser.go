@@ -39,7 +39,9 @@ func getDeviceId() (string, error) {
 	devices := make([]string, 0)
 	for str, err := rd.ReadString('\n'); err == nil; str, err = rd.ReadString('\n') {
 		if str = strings.TrimSpace(str); len(str) > 0 {
-			devices = append(devices, str)
+			if !strings.HasPrefix(str, "*") {
+				devices = append(devices, str)
+			}
 		}
 	}
 
