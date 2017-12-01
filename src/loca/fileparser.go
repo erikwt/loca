@@ -19,7 +19,7 @@ func fileReadlog(file *os.File) {
 	if err != nil {
 		log.Fatal("Regexp compile error", err)
 	}
-	formatPusslogStd, err := regexp.Compile(REGEXP_PUSSLOG_STD)
+	formatLocaStd, err := regexp.Compile(REGEXP_LOCA_STD)
 	if err != nil {
 		log.Fatal("Regexp compile error", err)
 	}
@@ -38,8 +38,8 @@ func fileReadlog(file *os.File) {
 			format = formatAdbStd
 		} else if formatAdbThreadtime.MatchString(str) {
 			format = formatAdbThreadtime
-		} else if formatPusslogStd.MatchString(str) {
-			format = formatPusslogStd
+		} else if formatLocaStd.MatchString(str) {
+			format = formatLocaStd
 		} else {
 			log.Print("Does not match any known logformat: " + str)
 			continue

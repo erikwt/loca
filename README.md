@@ -1,4 +1,4 @@
-# Pusslog
+# LOCA
 
 A commandline Android 'logcat' reader with many additional features.
 Written in Go, for the purpose of learning Go and improving the Android development experience.
@@ -19,79 +19,79 @@ Written in Go, for the purpose of learning Go and improving the Android developm
 Example usages below.
 
 ## Download
-There is a Linux x86-64 binary available in [the download section](https://github.com/erikwt/pusslog/downloads/).
-To use pusslog on other platforms, just build the binary from source as described below.
+There is a Linux x86-64 binary available in [the download section](https://github.com/erikwt/loca/downloads/).
+To use loca on other platforms, just build the binary from source as described below.
 
 ## Building
-Pusslog is written in Go. To build pusslog, you'll need to install go on your system.
+Loca is written in Go. To build loca, you'll need to install go on your system.
 
-Clone pusslog from github:
+Clone loca from github:
 ``` bash
-git clone https://github.com/erikwt/pusslog.git
+git clone https://github.com/erikwt/loca.git
 ```
 
-Build pusslog:
+Build loca:
 ``` bash
-cd /path/to/pusslog/source # path where you cloned the source
+cd /path/to/loca/source # path where you cloned the source
 export GOPATH=$(pwd)
 go get github.com/pebbe/util
-go build pusslog
+go build loca
 ```
 
-Now you can run the 'pusslog' executable:
+Now you can run the 'loca' executable:
 ``` bash
-./pusslog
+./loca
 ```
 
 Or put the executable somewhere in your $PATH.
 
 ## Example usages
-Note that many options can be combined to allow for very complex filtering and highlighting. Pusslog accepts
+Note that many options can be combined to allow for very complex filtering and highlighting. Loca accepts
 input directly from a device (over adb), from a file or from the standard input (pipe).
 
 ``` bash
 # Same as 'adb logcat' but prettier
-pusslog
+loca
 
-# pusslog help (brief) with all the options and defaults
-pusslog -help
+# loca help (brief) with all the options and defaults
+loca -help
 
 # highlights all log messages from the app with package 'eu.erikw.myapp' 
-pusslog -hl eu.erikw.myapp
+loca -hl eu.erikw.myapp
 
 # only log messages from the app with package 'eu.erikw.myapp'
-pusslog -p eu.erikw.myapp
+loca -p eu.erikw.myapp
 
 # only messages with priority 'Error' or 'Fatal'
-pusslog -prio EF
+loca -prio EF
 
 # only messages with priority 'Warning' or higher
-pusslog -minprio W
+loca -minprio W
 
 # only messages with tag 'MyAppTag'
-pusslog -t MyAppTag
+loca -t MyAppTag
 
 # write log to file
-pusslog -file /tmp/logfile
+loca -file /tmp/logfile
 
 # read from logfile instead of device
-pusslog -input /tmp/logfile
+loca -input /tmp/logfile
 
 # read from stdin (adb logcat output without messages containing 'dalvikvm' 
-adb logcat | grep -v dalvikvm | pusslog
+adb logcat | grep -v dalvikvm | loca
 
 # only messages matching regexp 'http://.+.com'
-pusslog -grep http://.+.com
+loca -grep http://.+.com
 
 # combination of filters and use of wildcards ;-)
-pusslog -t *man* -hl eu.erikw.myapp -minprio I
+loca -t *man* -hl eu.erikw.myapp -minprio I
 ```
 
 ## Problems / issues / bugs
-Please report issues in the [issue tracker](https://github.com/erikwt/pusslog/issues).
+Please report issues in the [issue tracker](https://github.com/erikwt/loca/issues).
 
 ## License
-Pusslog is licenced under the GNU GPL version 3.
+Loca is licenced under the GNU GPL version 3.
 
 ## Open source
 Thanks to [pebbe](https://github.com/pebbe) for the IsTerminal(..) implementation in the [go util source](https://github.com/pebbe/util).
