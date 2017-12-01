@@ -134,6 +134,11 @@ func parseline(l string) {
 		processid, _ := strconv.Atoi(fields[2])
 		threadid, _ := strconv.Atoi(fields[3])
 		prio := fields[4]
+
+		tagStart := len(fields[0])
+		fmt.Sprintf("%d", tagStart)
+		processid = tagStart
+
 		tag := strings.TrimRight(fields[5], ":")
 		message := strings.TrimLeft(strings.Join(fields[6:], " "), ": ")
 
