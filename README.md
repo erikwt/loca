@@ -19,7 +19,7 @@ Written in Go, for the purpose of learning Go and improving the Android developm
 Example usages below.
 
 ## Download
-There is a Linux x86-64 binary available in [the download section](https://github.com/erikwt/loca/downloads/).
+There is a OSX binary available in [the releases section](https://github.com/erikwt/loca/releases/).
 To use loca on other platforms, just build the binary from source as described below.
 
 ## Building
